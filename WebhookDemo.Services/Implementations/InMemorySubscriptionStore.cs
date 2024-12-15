@@ -1,8 +1,9 @@
-﻿using WebhookDemo.Services.Models;
+﻿using WebhookDemo.Services.Interfaces;
+using WebhookDemo.Services.Models;
 
-namespace WebhookDemo.Services.ServiceFebric
+namespace WebhookDemo.Services.Implementations
 {
-    public class InMemorySubscriptionStore
+    public class InMemorySubscriptionStore : IInMemorySubscriptionStore
     {
         private readonly List<Subscription> _subscriptions = new();
 

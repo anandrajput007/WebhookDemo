@@ -1,16 +1,17 @@
-﻿using WebhookDemo.Services.Interfaces;
+﻿using System.Text.Json;
+using System.Text;
+using WebhookDemo.Services.Interfaces;
 using WebhookDemo.Services.Models;
-using WebhookDemo.Services.ServiceFebric;
 
 namespace WebhookDemo.Services.Implementations
 {
     public class SubscriptionService : ISubscriptionService
     {
-        private readonly InMemorySubscriptionStore _subscriptionStore;
+        private readonly IInMemorySubscriptionStore _subscriptionStore;
 
-        public SubscriptionService()
+        public SubscriptionService(IInMemorySubscriptionStore subscriptionStore)
         {
-            _subscriptionStore = new InMemorySubscriptionStore();
+            _subscriptionStore = subscriptionStore;
         }
 
         public Subscription AddSubscription(Subscription subscription)
@@ -25,22 +26,28 @@ namespace WebhookDemo.Services.Implementations
 
         public async Task<bool> SimulateEvent(SimulateEvent simulateEvent)
         {
-            var subscriptionsForEvent = _subscriptionStore.GetSubscriptionsByEventType(simulateEvent.EventType);
+            var subscriptions = _subscriptionStore.GetSubscriptionsByEventType(simulateEvent.EventType);
 
-            if (subscriptionsForEvent.Count == 0)
-                return false;
-
-            using var httpClient = new HttpClient();
-            foreach (var subscription in subscriptionsForEvent)
+            if (subscriptions.Any())
             {
-                var payloadJson = System.Text.Json.JsonSerializer.Serialize(simulateEvent.Payload);
-                var content = new StringContent(payloadJson, System.Text.Encoding.UTF8, "application/json");
+                foreach (var subscription in subscriptions)
+                {
+                    var httpClient = new HttpClient();
+                    var payload = new
+                    {
+                        eventType = simulateEvent.EventType,
+                        message = "This is a test event for " + simulateEvent.EventType
+                    };
 
-                // Send POST request to Webhook URL
-                await httpClient.PostAsync(subscription.WebhookUrl, content);
+                    var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+                    await httpClient.PostAsync(subscription.WebhookUrl, content);
+                }
+
+                return true;
             }
 
-            return true;
+            return false;
         }
+
     }
 }
