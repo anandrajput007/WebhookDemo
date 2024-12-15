@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WebhookDemo.Services.Interfaces;
 using WebhookDemo.Services.Models;
+using WebhookDemo.Services.Util;
 
 namespace WebhookDemo.Controllers
 {
@@ -34,6 +35,12 @@ namespace WebhookDemo.Controllers
         {
             var result = await _subscriptionService.SimulateEvent(simulateEvent);
             return result ? Ok("Event sent successfully") : NotFound("No subscriptions found for the event type.");
+        }
+
+        [HttpGet("eventlogs")]
+        public IActionResult GetEventLogs()
+        {
+            return Ok(EventLogStore.EventLogs);
         }
     }
 }

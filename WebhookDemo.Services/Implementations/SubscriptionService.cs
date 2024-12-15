@@ -2,6 +2,7 @@
 using System.Text;
 using WebhookDemo.Services.Interfaces;
 using WebhookDemo.Services.Models;
+using WebhookDemo.Services.Util;
 
 namespace WebhookDemo.Services.Implementations
 {
@@ -26,6 +27,8 @@ namespace WebhookDemo.Services.Implementations
 
         public async Task<bool> SimulateEvent(SimulateEvent simulateEvent)
         {
+            AddEventLogs(simulateEvent);
+
             var subscriptions = _subscriptionStore.GetSubscriptionsByEventType(simulateEvent.EventType);
 
             if (subscriptions.Any())
@@ -47,6 +50,16 @@ namespace WebhookDemo.Services.Implementations
             }
 
             return false;
+        }
+
+        private void AddEventLogs(SimulateEvent simulateEvent)
+        {
+            EventLogStore.EventLogs.Add(new EventLogEntry
+            {
+                EventType = simulateEvent.EventType,
+                Payload = JsonSerializer.Serialize(simulateEvent.Payload),
+                Timestamp = DateTime.UtcNow
+            });
         }
 
     }

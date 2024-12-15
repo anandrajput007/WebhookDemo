@@ -1,9 +1,10 @@
 ﻿namespace WebhookDemo.Services.Models
 {
-    public class Subscription
+    public class EventLogEntry
     {
         public int Id { get; set; }
         public string EventType { get; set; }
-        public string WebhookUrl { get; set; }
+        public string Payload { get; set; }
+        public DateTime Timestamp { get; set; }
     }
 }
