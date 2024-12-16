@@ -27,8 +27,6 @@ namespace WebhookDemo.Services.Implementations
 
         public async Task<bool> SimulateEvent(SimulateEvent simulateEvent)
         {
-            AddEventLogs(simulateEvent);
-
             var subscriptions = _subscriptionStore.GetSubscriptionsByEventType(simulateEvent.EventType);
 
             if (subscriptions.Any())
@@ -43,7 +41,9 @@ namespace WebhookDemo.Services.Implementations
                     };
 
                     var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-                    await httpClient.PostAsync(subscription.WebhookUrl, content);
+                    var response = await httpClient.PostAsync(subscription.WebhookUrl, content);
+
+                    if (response.IsSuccessStatusCode) AddEventLogs(simulateEvent, response.IsSuccessStatusCode);
                 }
 
                 return true;
@@ -52,13 +52,14 @@ namespace WebhookDemo.Services.Implementations
             return false;
         }
 
-        private void AddEventLogs(SimulateEvent simulateEvent)
+        private void AddEventLogs(SimulateEvent simulateEvent, bool responseStatus = false)
         {
             EventLogStore.EventLogs.Add(new EventLogEntry
             {
                 EventType = simulateEvent.EventType,
                 Payload = JsonSerializer.Serialize(simulateEvent.Payload),
-                Timestamp = DateTime.UtcNow
+                Timestamp = DateTime.UtcNow,
+                IsSuccessful = responseStatus
             });
         }
 
