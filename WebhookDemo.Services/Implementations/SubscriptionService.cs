@@ -9,10 +9,12 @@ namespace WebhookDemo.Services.Implementations
     public class SubscriptionService : ISubscriptionService
     {
         private readonly IInMemorySubscriptionStore _subscriptionStore;
+        private readonly HttpClient _httpClient;
 
-        public SubscriptionService(IInMemorySubscriptionStore subscriptionStore)
+        public SubscriptionService(IInMemorySubscriptionStore subscriptionStore, HttpClient httpClient)
         {
             _subscriptionStore = subscriptionStore;
+            _httpClient = httpClient;
         }
 
         public Subscription AddSubscription(Subscription subscription)
@@ -33,7 +35,6 @@ namespace WebhookDemo.Services.Implementations
             {
                 foreach (var subscription in subscriptions)
                 {
-                    var httpClient = new HttpClient();
                     var payload = new
                     {
                         eventType = simulateEvent.EventType,
@@ -41,7 +42,7 @@ namespace WebhookDemo.Services.Implementations
                     };
 
                     var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-                    var response = await httpClient.PostAsync(subscription.WebhookUrl, content);
+                    var response = await _httpClient.PostAsync(subscription.WebhookUrl, content);
 
                     if (response.IsSuccessStatusCode) AddEventLogs(simulateEvent, response.IsSuccessStatusCode);
                 }
